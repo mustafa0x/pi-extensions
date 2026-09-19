@@ -1,0 +1,21 @@
+{
+  "name": "@mustafa0x/pi-compact-luna",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Compact Pi sessions with Luna at xhigh reasoning",
+  "license": "MIT",
+  "type": "module",
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    }
+  },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
