@@ -1,0 +1,29 @@
+{
+  "name": "@mustafa0x/pi-extensions",
+  "version": "0.1.0",
+  "description": "Pi extensions for Luna-powered session compaction and conversation summaries",
+  "license": "MIT",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "luna",
+    "compaction",
+    "summarization"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mustafa0x/pi-extensions.git"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/compact-luna.ts",
+      "./extensions/summarize-luna.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  }
+}
