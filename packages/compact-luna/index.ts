@@ -1,20 +1,42 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { compact } from "@earendil-works/pi-coding-agent";
 
-const LUNA_PROVIDER = "openai-codex";
-const LUNA_MODEL = "gpt-5.6-luna";
+const DEFAULT_LUNA_PROVIDER = "openai-codex";
+const DEFAULT_LUNA_MODEL = "gpt-5.6-luna";
 
 export default function (pi: ExtensionAPI) {
+	pi.registerFlag("compact-luna-provider", {
+		description: "Provider used by /compact-luna",
+		type: "string",
+	});
+	pi.registerFlag("compact-luna-model", {
+		description: "Model used by /compact-luna",
+		type: "string",
+	});
+
+	let lunaProvider = DEFAULT_LUNA_PROVIDER;
+	let lunaModel = DEFAULT_LUNA_MODEL;
 	let pendingLunaCompaction = false;
 	let lunaCompactionError: Error | undefined;
+
+	pi.on("session_start", () => {
+		lunaProvider =
+			(pi.getFlag("compact-luna-provider") as string | undefined) ||
+			process.env.PI_COMPACT_LUNA_PROVIDER ||
+			DEFAULT_LUNA_PROVIDER;
+		lunaModel =
+			(pi.getFlag("compact-luna-model") as string | undefined) ||
+			process.env.PI_COMPACT_LUNA_MODEL ||
+			DEFAULT_LUNA_MODEL;
+	});
 
 	pi.on("session_before_compact", async (event, ctx) => {
 		if (!pendingLunaCompaction || event.reason !== "manual") return;
 		pendingLunaCompaction = false;
 
-		const model = ctx.modelRegistry.find(LUNA_PROVIDER, LUNA_MODEL);
+		const model = ctx.modelRegistry.find(lunaProvider, lunaModel);
 		if (!model) {
-			lunaCompactionError = new Error(`Model ${LUNA_PROVIDER}/${LUNA_MODEL} is unavailable`);
+			lunaCompactionError = new Error(`Model ${lunaProvider}/${lunaModel} is unavailable`);
 			return { cancel: true };
 		}
 
@@ -45,19 +67,19 @@ export default function (pi: ExtensionAPI) {
 		handler: async (args, ctx) => {
 			await ctx.waitForIdle();
 
-			const model = ctx.modelRegistry.find(LUNA_PROVIDER, LUNA_MODEL);
+			const model = ctx.modelRegistry.find(lunaProvider, lunaModel);
 			if (!model) {
-				ctx.ui.notify(`Model ${LUNA_PROVIDER}/${LUNA_MODEL} is unavailable`, "error");
+				ctx.ui.notify(`Model ${lunaProvider}/${lunaModel} is unavailable`, "error");
 				return;
 			}
 			if (!ctx.modelRegistry.hasConfiguredAuth(model)) {
-				ctx.ui.notify(`No authentication configured for ${LUNA_PROVIDER}/${LUNA_MODEL}`, "error");
+				ctx.ui.notify(`No authentication configured for ${lunaProvider}/${lunaModel}`, "error");
 				return;
 			}
 
 			pendingLunaCompaction = true;
 			lunaCompactionError = undefined;
-			ctx.ui.notify(`Compacting with ${LUNA_MODEL} at xhigh...`, "info");
+			ctx.ui.notify(`Compacting with ${lunaModel} at xhigh...`, "info");
 			ctx.compact({
 				customInstructions: args.trim() || undefined,
 				onComplete: () => {
