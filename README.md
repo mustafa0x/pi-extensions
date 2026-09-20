@@ -62,7 +62,7 @@ Optional instructions can focus the result:
 /recap-luna Focus on decisions, unresolved problems, and next steps
 ```
 
-The recap starts with a short plain-language overview and includes only useful sections. It avoids checkboxes, empty status headings, repeated details, and artificial project-management language.
+The recap reads as two to five short paragraphs of natural prose. It avoids headings, lists, checkboxes, exhaustive metadata, repeated details, and artificial project-management language.
 
 The recap is saved as a durable session entry. In its modal:
 
