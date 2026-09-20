@@ -14,8 +14,8 @@ interface LunaSummaryEntry {
 	generatedAt: number;
 }
 
-const LUNA_PROVIDER = "openai-codex";
-const LUNA_MODEL = "gpt-5.6-luna";
+const DEFAULT_LUNA_PROVIDER = "openai-codex";
+const DEFAULT_LUNA_MODEL = "gpt-5.6-luna";
 const SUMMARY_TOKEN_BUDGET = 16_384;
 
 async function copySummary(summary: string, ctx: ExtensionCommandContext): Promise<void> {
@@ -59,6 +59,17 @@ async function showSummary(summary: string, ctx: ExtensionCommandContext): Promi
 }
 
 export default function (pi: ExtensionAPI) {
+	pi.registerFlag("summarize-luna-provider", {
+		description: "Provider used by /summarize-luna",
+		type: "string",
+	});
+	pi.registerFlag("summarize-luna-model", {
+		description: "Model used by /summarize-luna",
+		type: "string",
+	});
+
+	let lunaProvider = DEFAULT_LUNA_PROVIDER;
+	let lunaModel = DEFAULT_LUNA_MODEL;
 	let latestSummary: string | undefined;
 
 	pi.registerEntryRenderer<LunaSummaryEntry>("luna-summary", (entry, { expanded }, theme) => {
@@ -80,6 +91,14 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("session_start", (_event, ctx) => {
+		lunaProvider =
+			(pi.getFlag("summarize-luna-provider") as string | undefined) ||
+			process.env.PI_SUMMARIZE_LUNA_PROVIDER ||
+			DEFAULT_LUNA_PROVIDER;
+		lunaModel =
+			(pi.getFlag("summarize-luna-model") as string | undefined) ||
+			process.env.PI_SUMMARIZE_LUNA_MODEL ||
+			DEFAULT_LUNA_MODEL;
 		latestSummary = undefined;
 		for (const entry of ctx.sessionManager.getBranch()) {
 			if (entry.type !== "custom" || entry.customType !== "luna-summary") continue;
@@ -115,13 +134,13 @@ export default function (pi: ExtensionAPI) {
 		handler: async (args, ctx) => {
 			await ctx.waitForIdle();
 
-			const model = ctx.modelRegistry.find(LUNA_PROVIDER, LUNA_MODEL);
+			const model = ctx.modelRegistry.find(lunaProvider, lunaModel);
 			if (!model) {
-				ctx.ui.notify(`Model ${LUNA_PROVIDER}/${LUNA_MODEL} is unavailable`, "error");
+				ctx.ui.notify(`Model ${lunaProvider}/${lunaModel} is unavailable`, "error");
 				return;
 			}
 			if (!ctx.modelRegistry.hasConfiguredAuth(model)) {
-				ctx.ui.notify(`No authentication configured for ${LUNA_PROVIDER}/${LUNA_MODEL}`, "error");
+				ctx.ui.notify(`No authentication configured for ${lunaProvider}/${lunaModel}`, "error");
 				return;
 			}
 
@@ -133,7 +152,7 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			ctx.ui.notify(`Summarizing with ${LUNA_MODEL} at xhigh...`, "info");
+			ctx.ui.notify(`Summarizing with ${lunaModel} at xhigh...`, "info");
 
 			try {
 				const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);

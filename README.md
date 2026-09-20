@@ -74,6 +74,17 @@ Reopen or copy the latest summary in the current session:
 /summary-luna-copy
 ```
 
+## Configuration
+
+Both extensions default to `openai-codex/gpt-5.6-luna`. Override either command when starting Pi:
+
+| Command | Flags | Environment |
+| --- | --- | --- |
+| `/compact-luna` | `--compact-luna-provider`, `--compact-luna-model` | `PI_COMPACT_LUNA_PROVIDER`, `PI_COMPACT_LUNA_MODEL` |
+| `/summarize-luna` | `--summarize-luna-provider`, `--summarize-luna-model` | `PI_SUMMARIZE_LUNA_PROVIDER`, `PI_SUMMARIZE_LUNA_MODEL` |
+
+Flags take precedence over environment variables.
+
 ## Remove
 
 ```bash
@@ -89,8 +100,6 @@ Restart Pi or run `/reload` afterward.
 ```bash
 pi --list-models luna
 ```
-
-The extensions target provider `openai-codex` and model `gpt-5.6-luna`. Edit the constants near the top of each extension if your provider or model ID differs.
 
 ### Authentication fails
 
