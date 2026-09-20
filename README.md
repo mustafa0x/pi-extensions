@@ -1,6 +1,6 @@
 # pi-extensions
 
-Pi extensions for Luna-powered session compaction and conversation summaries.
+Pi extensions for Luna-powered session compaction and readable conversation recaps.
 
 ## Requirements
 
@@ -48,30 +48,32 @@ Optional instructions are forwarded to Pi's compaction summarizer:
 
 This uses Pi's normal compaction boundaries and structured format without changing the active session model. Automatic compaction remains unchanged.
 
-### Luna conversation summary
+### Luna conversation recap
 
-Generate a structured summary without compacting or changing the active session model:
+Create a concise, human-readable recap without compacting or changing the active session model:
 
 ```text
-/summarize-luna
+/recap-luna
 ```
 
 Optional instructions can focus the result:
 
 ```text
-/summarize-luna Focus on decisions, unresolved problems, and next steps
+/recap-luna Focus on decisions, unresolved problems, and next steps
 ```
 
-The summary is saved as a durable session entry. In its modal:
+The recap starts with a short plain-language overview and includes only useful sections. It avoids checkboxes, empty status headings, repeated details, and artificial project-management language.
 
-- `c` copies the summary
+The recap is saved as a durable session entry. In its modal:
+
+- `c` copies the recap
 - `Enter` or `Esc` closes the modal
 
-Reopen or copy the latest summary in the current session:
+Reopen or copy the latest recap in the current session:
 
 ```text
-/summary-luna-show
-/summary-luna-copy
+/recap-luna-show
+/recap-luna-copy
 ```
 
 ## Configuration
@@ -81,7 +83,7 @@ Both extensions default to `openai-codex/gpt-5.6-luna`. Override either command 
 | Command | Flags | Environment |
 | --- | --- | --- |
 | `/compact-luna` | `--compact-luna-provider`, `--compact-luna-model` | `PI_COMPACT_LUNA_PROVIDER`, `PI_COMPACT_LUNA_MODEL` |
-| `/summarize-luna` | `--summarize-luna-provider`, `--summarize-luna-model` | `PI_SUMMARIZE_LUNA_PROVIDER`, `PI_SUMMARIZE_LUNA_MODEL` |
+| `/recap-luna` | `--recap-luna-provider`, `--recap-luna-model` | `PI_RECAP_LUNA_PROVIDER`, `PI_RECAP_LUNA_MODEL` |
 
 Flags take precedence over environment variables.
 
