@@ -1,6 +1,6 @@
 {
   "name": "@mustafa0x/pi-recap-luna",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Create readable Pi conversation recaps with Luna at xhigh reasoning",
   "license": "MIT",
