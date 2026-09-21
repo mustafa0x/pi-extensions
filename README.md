@@ -50,7 +50,7 @@ This uses Pi's normal compaction boundaries and structured format without changi
 
 ### Luna conversation recap
 
-Create a concise, human-readable recap without compacting or changing the active session model:
+Create a concise list of what was done in the session without compacting or changing the active session model:
 
 ```text
 /recap-luna
@@ -62,7 +62,7 @@ Optional instructions can focus the result:
 /recap-luna Focus on decisions, unresolved problems, and next steps
 ```
 
-The recap adapts its structure to the conversation. It prefers natural prose, but may use a short heading or list when that genuinely improves clarity. It avoids canned status templates, empty sections, exhaustive bookkeeping, repetition, and artificial project-management language.
+The recap contains concise action/result bullets covering changes, diagnoses, decisions, tests, deployments, and remaining work. It omits introductions, conclusions, repeated background, and unnecessary bookkeeping.
 
 The recap is saved as a durable session entry. In its modal:
 
