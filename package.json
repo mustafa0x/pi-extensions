@@ -31,7 +31,8 @@
     "extensions": [
       "./packages/compact-luna/index.ts",
       "./packages/recap-luna/index.ts",
-      "./packages/history-search/index.ts"
+      "./packages/history-search/index.ts",
+      "./packages/ghostty-session-registry/index.ts"
     ]
   }
 }
