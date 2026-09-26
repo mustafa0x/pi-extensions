@@ -13,13 +13,25 @@
     "type": "git",
     "url": "https://github.com/mustafa0x/pi-extensions.git"
   },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "test:history-search": "node --test packages/history-search/test/*.test.ts"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "0.87.1",
+    "@earendil-works/pi-tui": "0.87.1",
+    "@types/node": "24.13.2",
+    "@types/proper-lockfile": "4.1.4",
+    "typescript": "5.9.3"
+  },
   "workspaces": [
     "packages/*"
   ],
   "pi": {
     "extensions": [
       "./packages/compact-luna/index.ts",
-      "./packages/recap-luna/index.ts"
+      "./packages/recap-luna/index.ts",
+      "./packages/history-search/index.ts"
     ]
   }
 }

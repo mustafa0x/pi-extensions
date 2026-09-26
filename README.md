@@ -1,12 +1,12 @@
 # pi-extensions
 
-Pi extensions for Luna-powered session compaction and readable conversation recaps.
+Pi extensions for fuzzy prompt-history search, Luna-powered session compaction, and readable conversation recaps.
 
 ## Requirements
 
-- Pi 0.85.1 or newer
-- `openai-codex/gpt-5.6-luna` in `pi --list-models luna`
-- An authenticated `openai-codex` provider (`/login openai-codex`)
+- Pi 0.87.1 or newer
+- For the Luna extensions only: `openai-codex/gpt-5.6-luna` in `pi --list-models luna` and an authenticated `openai-codex` provider (`/login openai-codex`)
+- History search needs no model or API key.
 
 ## Install
 
@@ -31,6 +31,14 @@ The unpinned git source follows the repository's default branch. Installing with
 Use `pi list` to inspect installed packages and `pi config` to enable or disable individual extensions.
 
 ## Extensions
+
+### Prompt history search
+
+Press **Ctrl+R** or run `/history-search` to search previous prompts. Enter restores the selected prompt into the draft without submitting; Escape cancels. Tab cycles directory/session/global scope.
+
+**Raw prompts are stored in plaintext and can contain secrets.** Set `capture: false` in `~/.pi/agent/history-search/config.json` to disable capture, then `/reload`. `/history-search-clear` clears the extension's history after confirmation, but does not delete Pi transcripts.
+
+See [history search](packages/history-search/README.md) for configuration, storage limits, and transcript fallback behavior. Pi may show a nonfatal Ctrl+R conflict with the session-selector rename binding.
 
 ### Luna compaction
 
@@ -78,7 +86,7 @@ Reopen or copy the latest recap in the current session:
 
 ## Configuration
 
-Both extensions default to `openai-codex/gpt-5.6-luna`. Override either command when starting Pi:
+Both Luna extensions default to `openai-codex/gpt-5.6-luna`. Override either command when starting Pi:
 
 | Command | Flags | Environment |
 | --- | --- | --- |

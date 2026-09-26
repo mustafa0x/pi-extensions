@@ -1,0 +1,22 @@
+{
+  "name": "@mustafa0x/pi-history-search",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fuzzy raw-prompt history search for Pi",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22.18.0" },
+  "dependencies": {
+    "fzf": "0.5.2",
+    "proper-lockfile": "4.1.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": { "optional": true },
+    "@earendil-works/pi-tui": { "optional": true }
+  },
+  "pi": { "extensions": ["./index.ts"] }
+}
