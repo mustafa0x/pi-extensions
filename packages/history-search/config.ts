@@ -12,6 +12,8 @@ export const DEFAULT_EDITOR_KEYBINDINGS = {
 
 export interface Config {
   capture: boolean;
+  agentsView: boolean;
+  agentsViewDatabase: string;
   scope: Scope;
   shortcut: KeyId;
   older: KeyId;
@@ -24,6 +26,8 @@ export interface Config {
 
 export const DEFAULT_CONFIG: Config = {
   capture: true,
+  agentsView: true,
+  agentsViewDatabase: "",
   scope: "directory",
   ...DEFAULT_EDITOR_KEYBINDINGS,
   maxEntries: 10000,
@@ -48,7 +52,8 @@ export function parseConfig(value: unknown): { config: Config; invalid: boolean 
   if (typeof value !== "object" || value === null || Array.isArray(value)) return { config, invalid: true };
   let invalid = false;
   for (const [key, entry] of Object.entries(value)) {
-    if (key === "capture" && typeof entry === "boolean") config.capture = entry;
+    if ((key === "capture" || key === "agentsView") && typeof entry === "boolean") config[key] = entry;
+    else if (key === "agentsViewDatabase" && typeof entry === "string" && !entry.includes("\0")) config.agentsViewDatabase = entry;
     else if (key === "scope" && typeof entry === "string" && ["global", "directory", "session"].includes(entry)) config.scope = entry as Scope;
     else if ((key === "shortcut" || key === "older" || key === "newer" || key === "cycleScope") && isKey(entry)) config[key] = entry;
     else if ((key === "maxEntries" || key === "maxBytes" || key === "maxVisible") &&

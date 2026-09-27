@@ -17,6 +17,8 @@ test("real extension loader: raw capture, exclusions, cancel/accept, streaming a
     else process.env.PI_CODING_AGENT_DIR = previous;
     await rm(dir, { recursive: true, force: true });
   });
+  await mkdir(join(dir, "history-search"));
+  await writeFile(join(dir, "history-search/config.json"), '{"agentsView":false}');
   const loaded = await discoverAndLoadExtensions([extensionPath], dir, dir);
   assert.deepEqual(loaded.errors, []);
   assert.equal(loaded.extensions.length, 1);
@@ -77,6 +79,10 @@ test("real extension loader: raw capture, exclusions, cancel/accept, streaming a
   await fire("session_start");
   assert.equal(session.getBranch().filter((e) => e.type === "custom").length, 1);
   assert.equal((await readFile(path, "utf8")).trim().split("\n").length, 1);
+  const opening = extension.shortcuts.get("ctrl+r")!.handler(ctx);
+  await fire("session_shutdown"); // Reload can invalidate the context while disk reads are pending.
+  await opening;
+  assert.equal(customCalls, 2);
   assert.deepEqual(notifications, []);
 });
 

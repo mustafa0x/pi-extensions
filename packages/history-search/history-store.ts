@@ -1,7 +1,13 @@
 import { randomUUID } from "node:crypto";
+import { mkdir as mkdirCallback, realpath, rmdir, rmdirSync, stat, utimes } from "node:fs";
 import { chmod, mkdir, open, rename, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import lockfile from "proper-lockfile";
+
+// proper-lockfile caches mtime precision with a non-configurable Symbol property.
+// Pi's Bun/Jiti CJS interop proxy cannot safely host that cache. Keep it on this
+// plain object instead of the library's proxied graceful-fs module.
+const lockFs = { mkdir: mkdirCallback, realpath, rmdir, rmdirSync, stat, utimes };
 
 export interface HistoryRecord {
   version: 1;
@@ -96,6 +102,7 @@ export class HistoryStore {
     if (process.platform !== "win32") await chmod(dirname(this.path), 0o700);
     let compromised: Error | undefined;
     const release = await lockfile.lock(this.path, {
+      fs: lockFs,
       realpath: false,
       retries: { retries: 8, minTimeout: 20, maxTimeout: 100, factor: 1.5 },
       onCompromised: (error) => { compromised = error; },

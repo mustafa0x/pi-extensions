@@ -35,6 +35,11 @@ test("config validates fields individually and all shortcuts", () => {
   assert.equal(result.invalid, true);
   assert.equal(parseConfig({ shortcut: "wat+r" }).config.shortcut, "ctrl+r");
   assert.equal(parseConfig(null).invalid, true);
+  const archive = parseConfig({ agentsView: false, agentsViewDatabase: "~/archive/sessions.db" });
+  assert.equal(archive.invalid, false);
+  assert.equal(archive.config.agentsView, false);
+  assert.equal(archive.config.agentsViewDatabase, "~/archive/sessions.db");
+  assert.equal(parseConfig({ agentsView: "false", agentsViewDatabase: 42 }).invalid, true);
 });
 
 test("round-trip, duplicate scopes, corruption recovery, private permissions", async (t) => {

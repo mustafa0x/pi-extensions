@@ -7,3 +7,5 @@
 - Fzf-powered Ctrl+R prompt search with raw multiline restoration and directory/session/global scopes.
 - Bounded, private-permission history storage with cross-process locking and non-blocking capture.
 - Configurable shortcuts, capture opt-out, confirmed history clearing, and transient branch fallback.
+- Read-only AgentsView archive source for older Pi prompts, with configurable database path and schema-error fallback.
+- Temporary Node search process with paginated results, coalesced queries, and cancellation-safe UI updates.

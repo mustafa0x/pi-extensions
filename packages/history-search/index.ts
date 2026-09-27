@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { join } from "node:path";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
 import { getAgentDir, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { loadConfig, type Scope } from "./config.ts";
 import { branchFallback, CAPTURE_BOUNDARY } from "./history-source.ts";
 import { HistoryStore } from "./history-store.ts";
 import { displayText, type Candidate } from "./search.ts";
 import { HistorySelector } from "./selector.ts";
+import { SearchClient } from "./search-client.ts";
 
 export default async function historySearch(pi: ExtensionAPI): Promise<void> {
   const directory = join(getAgentDir(), "history-search");
@@ -13,6 +15,10 @@ export default async function historySearch(pi: ExtensionAPI): Promise<void> {
   const store = new HistoryStore(join(directory, "history.jsonl"), config);
   let open = false;
   let warned = false;
+  let activeSearch: SearchClient | undefined;
+  let generation = 0;
+  const configuredPath = config.agentsViewDatabase || join(process.env.AGENTSVIEW_DATA_DIR || join(homedir(), ".agentsview"), "sessions.db");
+  const databasePath = config.agentsView ? (configuredPath.startsWith("~/") ? join(homedir(), configuredPath.slice(2)) : resolve(getAgentDir(), configuredPath)) : undefined;
 
   function warn(ctx: ExtensionContext, message: string): void {
     if (warned || !ctx.hasUI) return;
@@ -27,6 +33,7 @@ export default async function historySearch(pi: ExtensionAPI): Promise<void> {
   }
 
   pi.on("session_start", (_event, ctx) => {
+    generation++;
     if (warning && ctx.hasUI) ctx.ui.notify(warning, "warning");
     if (ctx.mode === "tui") ensureBoundary(ctx);
   });
@@ -44,30 +51,35 @@ export default async function historySearch(pi: ExtensionAPI): Promise<void> {
     }
     return { action: "continue" };
   });
-  pi.on("session_shutdown", async () => { await store.flush(); });
+  pi.on("session_shutdown", async () => { generation++; activeSearch?.dispose(); await store.flush(); });
 
   async function show(ctx: ExtensionContext, scope: Scope = config.scope): Promise<void> {
     if (ctx.mode !== "tui") { ctx.ui.notify("History search requires interactive terminal mode.", "warning"); return; }
     if (open) return;
     open = true;
     const sessionId = ctx.sessionManager.getSessionId();
+    const openingGeneration = generation;
     const draft = ctx.ui.getEditorText();
     try {
       await store.flush();
       let records: Candidate[] = [];
       try { records = (await store.read()).map((record) => ({ ...record, source: "persisted", label: displayText(record.text) })); }
       catch { warn(ctx, "cannot read stored history; showing transcript fallback only."); }
-      if (ctx.sessionManager.getSessionId() !== sessionId) return;
-      records.push(...branchFallback(ctx.sessionManager.getBranch(), ctx.cwd, sessionId));
+      if (generation !== openingGeneration || ctx.sessionManager.getSessionId() !== sessionId) return;
+      const branch = ctx.sessionManager.getBranch();
+      records.push(...branchFallback(branch, ctx.cwd, sessionId));
+      const branchCutoff = branch.find((entry) => entry.type === "custom" && entry.customType === CAPTURE_BOUNDARY)?.timestamp;
+      const search = new SearchClient({ records, cwd: ctx.cwd, sessionId, databasePath, branchCutoff });
+      activeSearch = search;
       let requestRender: (() => void) | undefined;
       const selected = await ctx.ui.custom<string | undefined>(
         (tui, theme, keys, done) => {
           requestRender = () => tui.requestRender();
-          return new HistorySelector(tui, theme, keys, done, records, { ...config, scope }, ctx.cwd, sessionId);
+          return new HistorySelector(tui, theme, keys, done, search, { ...config, scope });
         },
         { overlay: true, overlayOptions: { anchor: "center", width: "90%", maxHeight: "100%" } },
       );
-      if (selected !== undefined && ctx.sessionManager.getSessionId() === sessionId) {
+      if (selected !== undefined && generation === openingGeneration && ctx.sessionManager.getSessionId() === sessionId) {
         // An extension or dequeue action may have replaced the composer while loading.
         if (ctx.ui.getEditorText() !== draft) ctx.ui.notify("History search: draft changed; selection was not applied.", "warning");
         else {
@@ -76,7 +88,7 @@ export default async function historySearch(pi: ExtensionAPI): Promise<void> {
           requestRender?.();
         }
       }
-    } finally { open = false; }
+    } finally { activeSearch?.dispose(); activeSearch = undefined; open = false; }
   }
 
   pi.registerShortcut(config.shortcut, { description: "Search prompt history", handler: (ctx) => show(ctx) });
@@ -92,12 +104,12 @@ export default async function historySearch(pi: ExtensionAPI): Promise<void> {
     },
   });
   pi.registerCommand("history-search-clear", {
-    description: "Clear stored raw history globally (does not delete Pi transcripts)",
+    description: "Clear stored raw history globally (does not delete Pi or AgentsView archives)",
     handler: async (_args, ctx) => {
-      if (!ctx.hasUI || !await ctx.ui.confirm("Clear prompt history?", "Delete all stored raw prompts, across directories and sessions? Pi transcripts are not deleted.")) return;
+      if (!ctx.hasUI || !await ctx.ui.confirm("Clear prompt history?", "Delete all stored raw prompts, across directories and sessions? Pi transcripts and AgentsView history are not deleted and may still appear in search.")) return;
       try {
         await store.clear();
-        ctx.ui.notify("Stored prompt history cleared. Transcript fallback is still available.", "info");
+        ctx.ui.notify("Stored raw history cleared. Pi transcripts and AgentsView history are unchanged.", "info");
       } catch { ctx.ui.notify("History search: could not clear stored history.", "error"); }
     },
   });

@@ -6,7 +6,7 @@ Pi extensions for fuzzy prompt-history search, Luna-powered session compaction, 
 
 - Pi 0.87.1 or newer
 - For the Luna extensions only: `openai-codex/gpt-5.6-luna` in `pi --list-models luna` and an authenticated `openai-codex` provider (`/login openai-codex`)
-- History search needs no model or API key.
+- History search needs no model or API key. Background search requires Node 22.19+ on PATH when using standalone Pi.
 
 ## Install
 
@@ -36,7 +36,9 @@ Use `pi list` to inspect installed packages and `pi config` to enable or disable
 
 Press **Ctrl+R** or run `/history-search` to search previous prompts. Enter restores the selected prompt into the draft without submitting; Escape cancels. Tab cycles directory/session/global scope.
 
-**Raw prompts are stored in plaintext and can contain secrets.** Set `capture: false` in `~/.pi/agent/history-search/config.json` to disable capture, then `/reload`. `/history-search-clear` clears the extension's history after confirmation, but does not delete Pi transcripts.
+Older Pi prompts are also read from AgentsView's existing archive, when available. Database access and fuzzy matching run in a temporary background process; no new persistent index is created. AgentsView is never started or modified by the extension.
+
+**Raw prompts are stored in plaintext and can contain secrets.** Set `capture: false` in `~/.pi/agent/history-search/config.json` to disable capture, then `/reload`. `/history-search-clear` clears the extension's history after confirmation, but does not delete Pi transcripts or AgentsView history. Set `agentsView: false` to disable archive search.
 
 See [history search](packages/history-search/README.md) for configuration, storage limits, and transcript fallback behavior. Pi may show a nonfatal Ctrl+R conflict with the session-selector rename binding.
 

@@ -6,9 +6,11 @@
     "strict": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
     "erasableSyntaxOnly": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["packages/history-search/**/*.ts"]
+  "include": ["packages/history-search/**/*.ts", "packages/history-search/**/*.mjs"]
 }
